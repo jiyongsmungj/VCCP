@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CutieVoice Studio · 실시간 여성 보이스 체인저</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎀</text></svg>">
+<style>
+:root {
+  --bg: #16121f; --bg2: #1e1829; --card: #241c32; --line: #3a2e4f;
+  --text: #f4ecff; --dim: #a796c2; --pink: #ff7eb6; --pink2: #ff4f9a; --lav: #b69cff; --mint: #6ee7c8;
+  --warn: #ffb86b; --radius: 16px;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(1200px 600px at 10% -10%, #3a1d4a 0%, transparent 60%), radial-gradient(900px 500px at 110% 0%, #2a1f4f 0%, transparent 55%), var(--bg); color: var(--text); min-height: 100vh; }
+h1, h2, h3 { margin: 0; }
+button, select, input { font: inherit; color: inherit; }
+
+.top { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; border-bottom: 1px solid var(--line); background: rgba(22, 18, 31, .75); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 5; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { font-size: 34px; filter: drop-shadow(0 0 10px rgba(255, 126, 182, .6)); }
+.brand h1 { font-size: 20px; letter-spacing: .3px; background: linear-gradient(90deg, var(--pink), var(--lav)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.brand p { margin: 2px 0 0; font-size: 12px; color: var(--dim); }
+.top-status { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pill { padding: 6px 12px; border-radius: 999px; font-size: 13px; background: var(--bg2); border: 1px solid var(--line); }
+.pill.idle { color: var(--dim); }
+.pill.live { color: #0f2a22; background: var(--mint); border-color: var(--mint); font-weight: 700; }
+.pill.byp { color: #2a1a00; background: var(--warn); border-color: var(--warn); font-weight: 700; }
+.pill.ghost { color: var(--dim); }
+.tog { padding: 7px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg2); cursor: pointer; font-weight: 700; }
+.tog.on { background: linear-gradient(135deg, var(--pink2), #c056ff); border-color: transparent; }
+.tog.off { background: #3b2a2a; color: var(--warn); }
+.tog:disabled { opacity: .45; cursor: default; }
+
+.grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; padding: 18px 22px 40px; max-width: 1500px; margin: 0 auto; }
+.card { background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, 0)), var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; grid-column: span 4; min-width: 0; }
+.card.presets { grid-column: span 7; }
+.card.viz { grid-column: span 5; }
+.card.guide { grid-column: span 12; }
+@media (max-width: 1100px) { .card, .card.presets, .card.viz { grid-column: span 12; } }
+.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
+.card-head h2 { font-size: 16px; }
+.hint { color: var(--dim); font-size: 12px; }
+
+.preset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.preset { position: relative; text-align: left; padding: 12px 12px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg2); cursor: pointer; transition: transform .08s, border-color .15s, box-shadow .15s; }
+.preset:hover { transform: translateY(-2px); border-color: var(--lav); }
+.preset.on { border-color: var(--pink); box-shadow: 0 0 0 2px rgba(255, 126, 182, .35), 0 8px 24px rgba(255, 79, 154, .18); background: linear-gradient(160deg, #3a2040, var(--bg2)); }
+.preset .em { font-size: 26px; display: block; }
+.preset .nm { font-weight: 800; font-size: 14px; display: block; margin-top: 4px; }
+.preset .ds { color: var(--dim); font-size: 11.5px; display: block; margin-top: 3px; line-height: 1.35; }
+.preset .key { position: absolute; top: 8px; right: 10px; font-size: 11px; color: var(--dim); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; }
+.preset .del { position: absolute; top: 6px; right: 8px; border: none; background: none; color: var(--dim); cursor: pointer; font-size: 14px; }
+.custom-head { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 10px; gap: 10px; flex-wrap: wrap; }
+.custom-head h3 { font-size: 14px; }
+.save-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.save-row input { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; width: 140px; }
+.preset-grid.custom:empty::before { content: '아직 저장한 프리셋이 없어요. 슬라이더로 조절한 뒤 저장해보세요!'; color: var(--dim); font-size: 12px; grid-column: 1 / -1; }
+
+button.small, .small { color: var(--text); padding: 7px 12px; border-radius: 10px; border: 1px solid var(--line); background: #33284a; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; }
+.small:hover:not(:disabled) { border-color: var(--lav); }
+.small.ghost { background: transparent; }
+.small:disabled { opacity: .45; cursor: default; }
+.small.rec { background: #5a1f33; border-color: var(--pink2); }
+.filebtn { cursor: pointer; }
+.primary { background: linear-gradient(135deg, var(--pink2), #b85cff); border: none; border-radius: 14px; padding: 12px 26px; font-weight: 800; cursor: pointer; color: white; }
+.primary.big { font-size: 18px; padding: 14px 40px; box-shadow: 0 10px 30px rgba(255, 79, 154, .35); }
+
+.hz-row { display: flex; align-items: flex-end; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+.hz { display: flex; flex-direction: column; }
+.hz .lbl { font-size: 11px; color: var(--dim); }
+.hz .num { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; min-width: 70px; }
+.hz.out .num { color: var(--pink); }
+.hz.small .num { font-size: 18px; color: var(--lav); }
+.hz .u { font-size: 11px; color: var(--dim); }
+.arrow { font-size: 22px; color: var(--dim); padding-bottom: 14px; }
+canvas { width: 100%; display: block; background: #140f1d; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
+.meters { display: grid; gap: 6px; margin: 4px 0 12px; }
+.meter { display: grid; grid-template-columns: 34px 1fr 52px; align-items: center; gap: 8px; font-size: 12px; color: var(--dim); }
+.meter b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.bar { height: 10px; background: #140f1d; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--mint), #ffe07a 75%, #ff6b6b); transition: width .06s linear; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.gate-dot { font-size: 12px; color: var(--dim); }
+.gate-dot.open { color: var(--mint); }
+
+.seg { display: flex; background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.seg button { border: none; background: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 12.5px; color: var(--dim); }
+.seg button.on { background: #3d2d57; color: var(--text); font-weight: 700; }
+
+.ctl { display: grid; gap: 12px; }
+.sl { display: grid; gap: 4px; }
+.sl .t { display: flex; justify-content: space-between; font-size: 13px; }
+.sl .t span:last-child { color: var(--pink); font-variant-numeric: tabular-nums; font-weight: 700; }
+.sl .d { font-size: 11px; color: var(--dim); }
+.sl.hidden { display: none; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 6px; background: linear-gradient(90deg, var(--pink) var(--fill, 50%), #3a2e4f var(--fill, 50%)); outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid var(--pink2); cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); }
+input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--pink2); cursor: pointer; }
+
+.dev { display: grid; gap: 10px; margin-bottom: 14px; font-size: 13px; }
+.dev label { display: grid; gap: 4px; color: var(--dim); }
+.dev label.row { display: flex; gap: 8px; align-items: center; color: var(--text); cursor: pointer; }
+.dev select { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 7px 8px; color: var(--text); width: 100%; }
+.dev input[type=checkbox] { accent-color: var(--pink2); width: 16px; height: 16px; }
+.badge { background: rgba(110, 231, 200, .12); border: 1px solid rgba(110, 231, 200, .4); color: var(--mint); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.badge.warn { background: rgba(255, 184, 107, .1); border-color: rgba(255, 184, 107, .4); color: var(--warn); }
+
+.guide ol { margin: 0 0 10px; padding-left: 20px; line-height: 1.9; font-size: 14px; }
+code, kbd { background: #140f1d; border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 12.5px; }
+
+.overlay { position: fixed; inset: 0; background: rgba(12, 9, 18, .82); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 20; }
+.overlay.hide { display: none; }
+.start-card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 34px 40px; text-align: center; max-width: 440px; box-shadow: 0 30px 80px rgba(0, 0, 0, .5); }
+.big-emoji { font-size: 50px; }
+.start-card h2 { margin: 8px 0; font-size: 22px; }
+.start-card p { color: var(--dim); line-height: 1.6; font-size: 14px; }
+.err { color: #ff8a8a !important; font-size: 13px; }
+
+.toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px); background: #2f2443; border: 1px solid var(--lav); padding: 10px 18px; border-radius: 12px; font-size: 14px; opacity: 0; pointer-events: none; transition: all .25s; z-index: 30; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo">🎀</span>
+    <div>
+      <h1>CutieVoice Studio</h1>
+      <p>실시간 여성 보이스 체인저 · PSOLA 엔진</p>
+    </div>
+  </div>
+  <div class="top-status">
+    <span id="statusPill" class="pill idle">대기 중</span>
+    <span id="latencyPill" class="pill ghost" title="엔진 + 오디오 장치 지연">지연 – ms</span>
+    <button id="bypassBtn" class="tog" disabled title="단축키 B">변조 ON</button>
+    <button id="muteBtn" class="tog" disabled title="단축키 M">🔊 출력</button>
+  </div>
+</header>
+
+<div id="startOverlay" class="overlay">
+  <div class="start-card">
+    <div class="big-emoji">🎙️💗</div>
+    <h2>목소리 변신 준비 완료!</h2>
+    <p>시작을 누르면 마이크 권한을 요청합니다.<br><b>헤드폰을 꼭 써주세요</b> (스피커로 들으면 하울링이 생겨요).</p>
+    <button id="startBtn" class="primary big">▶ 시작하기</button>
+    <p id="startErr" class="err"></p>
+  </div>
+</div>
+
+<main class="grid">
+  <!-- 프리셋 -->
+  <section class="card presets">
+    <div class="card-head">
+      <h2>🎀 목소리 스타일</h2>
+      <span class="hint">숫자키 1~9, 0, -, = 로 빠르게 전환</span>
+    </div>
+    <div id="presetGrid" class="preset-grid"></div>
+    <div class="custom-head">
+      <h3>⭐ 내 프리셋</h3>
+      <div class="save-row">
+        <input id="customName" type="text" maxlength="20" placeholder="프리셋 이름">
+        <button id="saveCustom" class="small">현재 설정 저장</button>
+        <button id="exportBtn" class="small ghost" title="JSON 파일로 내보내기">내보내기</button>
+        <label class="small ghost filebtn">가져오기<input id="importFile" type="file" accept=".json" hidden></label>
+      </div>
+    </div>
+    <div id="customGrid" class="preset-grid custom"></div>
+  </section>
+
+  <!-- 모니터 -->
+  <section class="card viz">
+    <div class="card-head">
+      <h2>📈 실시간 분석</h2>
+      <span id="gateDot" class="gate-dot" title="노이즈 게이트 상태">● 게이트</span>
+    </div>
+    <div class="hz-row">
+      <div class="hz"><span class="lbl">내 목소리</span><span id="hzIn" class="num">–</span><span class="u">Hz</span></div>
+      <div class="arrow">→</div>
+      <div class="hz out"><span class="lbl">변환 목소리</span><span id="hzOut" class="num">–</span><span class="u">Hz</span></div>
+      <div class="hz small"><span class="lbl">평균 음높이</span><span id="hzMean" class="num">–</span><span class="u">Hz</span></div>
+    </div>
+    <canvas id="pitchCanvas" height="150"></canvas>
+    <canvas id="specCanvas" height="130"></canvas>
+    <div class="meters">
+      <div class="meter"><span>입력</span><div class="bar"><i id="mIn"></i></div><b id="mInDb">-∞</b></div>
+      <div class="meter"><span>출력</span><div class="bar"><i id="mOut"></i></div><b id="mOutDb">-∞</b></div>
+    </div>
+    <div class="btn-row">
+      <button id="calibBtn" class="small" disabled>🎯 내 목소리 맞춤 (5초)</button>
+      <button id="recBtn" class="small" disabled>⏺ 5초 녹음 테스트</button>
+      <a id="recDl" class="small ghost" hidden download="cutievoice-test.webm">⬇ 녹음 받기</a>
+    </div>
+    <p id="calibMsg" class="hint"></p>
+  </section>
+
+  <!-- 목소리 조절 -->
+  <section class="card">
+    <div class="card-head"><h2>🎚️ 목소리 조절</h2>
+      <div class="seg" id="modeSeg">
+        <button data-mode="target" class="on">목표 음높이</button>
+        <button data-mode="semitone">반음 이동</button>
+      </div>
+    </div>
+    <div id="voiceCtl" class="ctl"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>🎨 음색 · 효과</h2></div>
+    <div id="toneCtl" class="ctl"></div>
+  </section>
+
+  <!-- 장치 -->
+  <section class="card">
+    <div class="card-head"><h2>🔌 장치 · 출력</h2></div>
+    <div class="dev">
+      <label>🎙️ 마이크<select id="inSel"></select></label>
+      <label>📡 출력 (방송/가상 마이크)<select id="outSel"></select></label>
+      <div id="vcBadge" class="badge" hidden></div>
+      <label class="row"><input type="checkbox" id="monChk"> 🎧 모니터로 내 변환 목소리 듣기</label>
+      <label id="monWrap">모니터 장치<select id="monSel"></select></label>
+      <label class="row"><input type="checkbox" id="nsChk" checked> 브라우저 노이즈 억제 (잡음 많은 방 추천)</label>
+      <label class="row"><input type="checkbox" id="agcChk"> 자동 입력 볼륨 (AGC)</label>
+      <label class="row"><input type="checkbox" id="gateChk" checked> 노이즈 게이트 (말 안 할 때 완전 무음)</label>
+      <label class="row"><input type="checkbox" id="compChk" checked> 방송용 컴프레서 (클리핑 방지 리미터는 항상 켜짐)</label>
+      <label class="row"><input type="checkbox" id="freezeChk"> 평균 음높이 고정 (보정값 유지)</label>
+    </div>
+    <div id="ioCtl" class="ctl"></div>
+  </section>
+
+  <section class="card guide">
+    <div class="card-head"><h2>📺 방송 · 디스코드 연결</h2></div>
+    <ol>
+      <li><b>VB-CABLE</b>(무료 가상 오디오 케이블)을 설치하세요. <span class="hint">vb-audio.com/Cable</span> · 맥은 <b>BlackHole</b></li>
+      <li>위 <b>📡 출력</b>을 <code>CABLE Input</code>으로 바꾸세요. (설치되어 있으면 자동으로 알려드려요)</li>
+      <li><b>OBS</b>: 소스 추가 → 오디오 입력 캡처 → <code>CABLE Output</code><br>
+          <b>디스코드/게임</b>: 설정 → 음성 → 입력 장치 → <code>CABLE Output</code></li>
+      <li>내 목소리를 들으려면 <b>🎧 모니터</b>를 켜고 헤드폰을 선택하세요.</li>
+      <li>디스코드에서는 <b>노이즈 억제(Krisp)·에코 제거를 끄면</b> 음질이 더 좋아요.</li>
+    </ol>
+    <p class="hint">단축키 · <kbd>1</kbd>~<kbd>=</kbd> 프리셋 · <kbd>B</kbd> 변조 켜기/끄기 · <kbd>M</kbd> 출력 음소거 (이 창이 선택되어 있을 때)</p>
+    <p class="hint">이 탭을 닫으면 변조가 멈춥니다. 다른 탭으로 옮겨도, 창을 최소화해도 계속 동작해요. Chrome 또는 Edge 에서 열어주세요.</p>
+  </section>
+</main>
+<div id="toast" class="toast"></div>
+<script type="text/plain" id="worklet-src">
+/*
+ * 냥보이스 - 실시간 음성 변환 엔진 (AudioWorklet)
+ *
+ * 처리 순서
+ *  1) 입력 하이패스(럼블 제거) + 노이즈 게이트(룩어헤드)
+ *  2) YIN 피치 추적 (1kHz 저역통과 → 1/4 다운샘플 → YIN → 3점 중앙값)
+ *  3) 피치 동기 분석 마크 생성
+ *  4) PSOLA 합성: 그레인 간격 = 목표 피치, 그레인 리샘플링 = 포먼트(성도 길이) 이동
+ *     → 음높이와 음색(포먼트)을 서로 독립적으로 조절
+ *  5) 숨소리(브레스) 합성, 디에서(치찰음 억제), 드라이/웻 믹스
+ */
+
+const TWO_PI = Math.PI * 2;
+
+class Biquad {
+  constructor() { this.b0 = 1; this.b1 = 0; this.b2 = 0; this.a1 = 0; this.a2 = 0; this.z1 = 0; this.z2 = 0; }
+  _set(b0, b1, b2, a0, a1, a2) {
+    this.b0 = b0 / a0; this.b1 = b1 / a0; this.b2 = b2 / a0; this.a1 = a1 / a0; this.a2 = a2 / a0;
+  }
+  lowpass(fs, f, q) {
+    const w = TWO_PI * f / fs, c = Math.cos(w), al = Math.sin(w) / (2 * q);
+    this._set((1 - c) / 2, 1 - c, (1 - c) / 2, 1 + al, -2 * c, 1 - al); return this;
+  }
+  highpass(fs, f, q) {
+    const w = TWO_PI * f / fs, c = Math.cos(w), al = Math.sin(w) / (2 * q);
+    this._set((1 + c) / 2, -(1 + c), (1 + c) / 2, 1 + al, -2 * c, 1 - al); return this;
+  }
+  process(x) {
+    const y = this.b0 * x + this.z1;
+    this.z1 = this.b1 * x - this.a1 * y + this.z2;
+    this.z2 = this.b2 * x - this.a2 * y;
+    return y;
+  }
+}
+
+const dbToLin = (db) => Math.pow(10, db / 20);
+const linToDb = (x) => (x > 1e-9 ? 20 * Math.log10(x) : -180);
+
+class VoiceProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    const fs = sampleRate;
+    this.fs = fs;
+
+    // ---------- 링 버퍼 ----------
+    this.SIZE = 1 << 16; this.MASK = this.SIZE - 1;
+    this.inBuf = new Float32Array(this.SIZE);
+    this.outBuf = new Float32Array(this.SIZE);
+    this.wBuf = new Float32Array(this.SIZE);
+    this.gateBuf = new Float32Array(this.SIZE);
+    this.n = 0;
+
+    // ---------- 피치 분석 설정 ----------
+    this.minF0 = 75; this.maxF0 = 1000;
+    this.R = Math.max(1, Math.round(fs / 12000));
+    this.fsD = fs / this.R;
+    this.W = Math.round(0.016 * this.fsD);
+    this.tauMax = Math.ceil(this.fsD / this.minF0);
+    this.tauMin = Math.max(2, Math.floor(this.fsD / this.maxF0));
+    this.span = this.W + this.tauMax;
+    this.hopD = Math.max(1, Math.round(0.004 * this.fsD));
+    this.hopFull = this.hopD * this.R;
+    this.look = Math.round(0.010 * fs);
+    this.t0 = this.span * this.R - this.look;   // 0번 프레임의 시각
+
+    this.dSIZE = 1 << 14; this.dMASK = this.dSIZE - 1;
+    this.dBuf = new Float32Array(this.dSIZE);
+    this.dCount = 0; this.decPhase = 0;
+    this.lp1 = new Biquad().lowpass(fs, 1000, 0.5412);
+    this.lp2 = new Biquad().lowpass(fs, 1000, 1.3066);
+    this.yinTmp = new Float32Array(this.span);
+    this.yinD = new Float32Array(this.tauMax + 2);
+
+    this.FSIZE = 1024; this.FMASK = this.FSIZE - 1;
+    this.rawF0 = new Float32Array(this.FSIZE);
+    this.rawAp = new Float32Array(this.FSIZE);
+    this.rawRms = new Float32Array(this.FSIZE);
+    this.finF0 = new Float32Array(this.FSIZE);
+    this.finV = new Uint8Array(this.FSIZE);
+    this.frameK = 0; this.finalK = -1;
+    this.prevFinalV = 0; this.prevFinalLog = Math.log(120);
+    this.meanLog = Math.log(125);
+
+    // ---------- PSOLA 설정 ----------
+    this.Tmax = Math.ceil(fs / this.minF0);
+    this.LA_MAX = Math.ceil(this.Tmax * 1.2);
+    this.LS_MAX = this.LA_MAX;
+    this.D = this.LA_MAX + this.LS_MAX + 24;   // 고정 처리 지연(샘플)
+    this.Tu = Math.round(0.005 * fs);           // 무성음 그레인 반길이
+
+    this.MSIZE = 4096; this.MMASK = this.MSIZE - 1;
+    this.mPos = new Float64Array(this.MSIZE);
+    this.mT = new Float32Array(this.MSIZE);
+    this.mP = new Float32Array(this.MSIZE);
+    this.mV = new Uint8Array(this.MSIZE);
+    this.mCount = 0;
+    this.nextMarkPos = 0;
+    this.nextSynth = 0;
+    this.synthIdx = 0;
+
+    // Hann 창 테이블 (v ∈ [-1, 1])
+    this.WT = new Float32Array(2050);
+    for (let i = 0; i <= 2049; i++) {
+      const v = Math.min(1, i / 1024 - 1);
+      this.WT[i] = 0.5 + 0.5 * Math.cos(Math.PI * v);
+    }
+
+    // ---------- 전/후처리 ----------
+    this.hpIn = new Biquad().highpass(fs, 70, 0.707);
+    this.hpNoise = new Biquad().highpass(fs, 2800, 0.6);
+    this.lpNoise = new Biquad().lowpass(fs, 11000, 0.6);
+    this.deHP = new Biquad().highpass(fs, 5200, 0.7);
+    this.noiseSeed = 22222;
+    this.breathEnv = 0; this.deEnv = 0; this.vSmooth = 0;
+    this.gEnv = 0; this.gGain = 0; this.gHold = 0; this.gOpen = false;
+    this.gateLook = Math.round(0.006 * fs);
+    this.bypassMix = 0;
+    this.eIn = 1e-6; this.eWet = 1e-6; this.lvl = 1;
+    this.lastOutF0 = 0; this.lastInF0 = 0; this.lastVoiced = 0;
+    this.statCounter = 0; this.inPeak = 0; this.outPeak = 0; this.inSq = 0; this.outSq = 0; this.sqN = 0;
+
+    this.p = {
+      mode: 'target',      // 'target' (목표 Hz) | 'semitone' (반음 이동)
+      targetHz: 260,
+      semitones: 8,
+      formant: 1.2,        // 1.0 = 그대로, 1.2 = 성도 20% 짧게(여성)
+      intonation: 1.2,     // 억양 폭 (1 = 원래 억양)
+      breath: 0.1,
+      vibRate: 5.5,
+      vibDepth: 0,         // cents
+      deEss: 0.4,
+      mix: 1,
+      gateOn: true,
+      gateDb: -52,
+      bypass: false,
+      freezeMean: false,
+    };
+    this.vibPhase = 0;
+
+    this.port.onmessage = (e) => {
+      const d = e.data || {};
+      if (d.type === 'params') Object.assign(this.p, d.params);
+      else if (d.type === 'setMean' && d.hz > 40) this.meanLog = Math.log(d.hz);
+    };
+    this.port.postMessage({ type: 'ready', latencyMs: (this.D / fs) * 1000, sampleRate: fs });
+  }
+
+  // ---------------- 피치 추적 ----------------
+  computeRawFrame(k) {
+    const e = this.span + k * this.hopD;
+    const s = e - this.span;
+    const x = this.yinTmp, d = this.yinD, W = this.W, tauMax = this.tauMax;
+    for (let j = 0; j < this.span; j++) x[j] = this.dBuf[(s + j) & this.dMASK];
+    let sq = 0;
+    for (let j = 0; j < W; j++) sq += x[j] * x[j];
+    const rms = Math.sqrt(sq / W);
+    d[0] = 1;
+    let run = 0;
+    for (let tau = 1; tau <= tauMax; tau++) {
+      let acc = 0;
+      for (let j = 0; j < W; j++) { const df = x[j] - x[j + tau]; acc += df * df; }
+      run += acc;
+      d[tau] = run > 0 ? (acc * tau) / run : 1;
+    }
+    const thr = 0.12;
+    let tau = -1;
+    for (let t = this.tauMin; t <= tauMax; t++) {
+      if (d[t] < thr) {
+        while (t + 1 <= tauMax && d[t + 1] < d[t]) t++;
+        tau = t; break;
+      }
+    }
+    if (tau < 0) {
+      let best = 1e9;
+      for (let t = this.tauMin; t <= tauMax; t++) if (d[t] < best) { best = d[t]; tau = t; }
+    }
+    let ap = d[tau];
+    let tr = tau;
+    if (tau > 1 && tau < tauMax) {
+      const a = d[tau - 1], b = d[tau], c = d[tau + 1];
+      const den = a - 2 * b + c;
+      if (den > 1e-12) { const off = 0.5 * (a - c) / den; if (off > -1 && off < 1) tr = tau + off; }
+    }
+    const i = k & this.FMASK;
+    this.rawF0[i] = this.fsD / tr;
+    this.rawAp[i] = ap;
+    this.rawRms[i] = rms;
+  }
+
+  finalizeFrame(k) {
+    const i = k & this.FMASK;
+    const eThr = dbToLin(this.p.gateDb - 8);
+    const apThr = this.prevFinalV ? 0.4 : 0.25;
+    let v = this.rawRms[i] > eThr && this.rawAp[i] < apThr ? 1 : 0;
+    let f = this.rawF0[i];
+    if (v) {
+      // 3점 중앙값 (앞/뒤 프레임이 주기적일 때만)
+      const a = k > 0 ? this.rawF0[(k - 1) & this.FMASK] : f;
+      const aOk = k > 0 && this.rawAp[(k - 1) & this.FMASK] < 0.4;
+      const c = this.rawF0[(k + 1) & this.FMASK];
+      const cOk = this.rawAp[(k + 1) & this.FMASK] < 0.4;
+      if (aOk && cOk) f = Math.max(Math.min(a, f), Math.min(Math.max(a, f), c));
+      let lf = Math.log(f);
+      if (this.prevFinalV) lf = 0.8 * lf + 0.2 * this.prevFinalLog;
+      f = Math.exp(lf);
+      this.prevFinalLog = lf;
+      if (!this.p.freezeMean) {
+        const a2 = (this.hopFull / this.fs) / 4.0;
+        this.meanLog += (lf - this.meanLog) * a2;
+        if (this.meanLog < Math.log(70)) this.meanLog = Math.log(70);
+        if (this.meanLog > Math.log(400)) this.meanLog = Math.log(400);
+      }
+      this.lastInF0 = f;
+    }
+    this.prevFinalV = v;
+    this.finF0[i] = f;
+    this.finV[i] = v;
+    this.finalK = k;
+  }
+
+  pitchAt(t) {
+    // 결과: this._pv (유성 여부), this._pf (Hz)
+    if (this.finalK < 0) { this._pv = 0; this._pf = 0; return; }
+    const x = (t - this.t0) / this.hopFull;
+    if (x < 0) { this._pv = 0; this._pf = 0; return; }
+    let k0 = Math.floor(x), frac = x - k0;
+    if (k0 >= this.finalK) { k0 = this.finalK; frac = 0; }
+    const i0 = k0 & this.FMASK, i1 = (k0 + 1) & this.FMASK;
+    const v0 = this.finV[i0], v1 = frac > 0 ? this.finV[i1] : v0;
+    if (v0 && v1) {
+      this._pv = 1;
+      this._pf = Math.exp(Math.log(this.finF0[i0]) * (1 - frac) + Math.log(this.finF0[i1]) * frac);
+    } else {
+      const ii = frac < 0.5 ? i0 : i1;
+      this._pv = this.finV[ii]; this._pf = this.finF0[ii];
+    }
+  }
+
+  ratioFor(f) {
+    const P = this.p;
+    const dev = Math.log(f) - this.meanLog;
+    let fout;
+    if (P.mode === 'target') fout = P.targetHz * Math.exp(P.intonation * dev);
+    else fout = f * Math.pow(2, P.semitones / 12) * Math.exp((P.intonation - 1) * dev);
+    if (fout < 50) fout = 50; if (fout > 1300) fout = 1300;
+    let r = fout / f;
+    if (r < 0.25) r = 0.25; if (r > 4) r = 4;
+    return r;
+  }
+
+  // ---------------- PSOLA ----------------
+  readIn(pos) {
+    const M = this.MASK, b = this.inBuf;
+    const i = Math.floor(pos), t = pos - i;
+    const xm1 = b[(i - 1) & M], x0 = b[i & M], x1 = b[(i + 1) & M], x2 = b[(i + 2) & M];
+    const c1 = 0.5 * (x1 - xm1);
+    const c2 = xm1 - 2.5 * x0 + 2 * x1 - 0.5 * x2;
+    const c3 = 0.5 * (x2 - xm1) + 1.5 * (x0 - x1);
+    return ((c3 * t + c2) * t + c1) * t + x0;
+  }
+
+  addGrain(ts, Ls, center, f) {
+    const i0 = Math.ceil(ts - Ls), i1 = Math.floor(ts + Ls);
+    const inv = 1 / Ls, WT = this.WT, M = this.MASK;
+    for (let i = i0; i <= i1; i++) {
+      const u = i - ts;
+      const idx = (u * inv + 1) * 1024;
+      const ii = idx | 0;
+      if (ii < 0 || ii > 2048) continue;
+      const w = WT[ii] + (idx - ii) * (WT[ii + 1] - WT[ii]);
+      if (w <= 0) continue;
+      const j = i & M;
+      this.outBuf[j] += w * this.readIn(center + u * f);
+      this.wBuf[j] += w;
+    }
+  }
+
+  synthesize() {
+    const A = this.n - this.LA_MAX;
+    const fs = this.fs;
+    // 분석 마크 생성
+    const lastFinalTime = this.t0 + this.finalK * this.hopFull;
+    const limit = Math.min(A, lastFinalTime);
+    while (this.nextMarkPos <= limit) {
+      this.pitchAt(this.nextMarkPos);
+      const j = this.mCount & this.MMASK;
+      let T, r, v = this._pv;
+      if (v && this._pf > 0) { T = fs / this._pf; r = this.ratioFor(this._pf); }
+      else { v = 0; T = this.Tu; r = 1; }
+      this.mPos[j] = this.nextMarkPos; this.mT[j] = T; this.mP[j] = r; this.mV[j] = v;
+      this.mCount++;
+      this.nextMarkPos += T;
+    }
+    if (this.mCount === 0) return;
+
+    const P = this.p;
+    let f = P.formant;
+    if (f < 0.6) f = 0.6; if (f > 1.8) f = 1.8;
+    while (this.nextSynth <= A) {
+      while (this.synthIdx + 1 < this.mCount && this.mPos[(this.synthIdx + 1) & this.MMASK] <= this.nextSynth) this.synthIdx++;
+      const m = this.synthIdx & this.MMASK;
+      let Ls, center, S;
+      if (this.mV[m]) {
+        const T = this.mT[m];
+        let r = this.mP[m];
+        if (P.vibDepth > 0) {
+          const ph = TWO_PI * P.vibRate * this.nextSynth / fs;
+          r *= Math.pow(2, (P.vibDepth / 1200) * Math.sin(ph));
+        }
+        Ls = T * Math.max(1 / f, 1 / r);
+        if (Ls > this.LS_MAX) Ls = this.LS_MAX;
+        if (Ls * f > this.LA_MAX) Ls = this.LA_MAX / f;
+        center = this.mPos[m];
+        S = T / r;
+        this.lastOutF0 = fs / S;
+      } else {
+        Ls = this.Tu / f;
+        if (Ls * f > this.LA_MAX) Ls = this.LA_MAX / f;
+        center = this.nextSynth;
+        S = Ls * (0.85 + 0.3 * Math.random());
+      }
+      if (S < 8) S = 8;
+      this.addGrain(this.nextSynth, Ls, center, f);
+      this.nextSynth += S;
+    }
+  }
+
+  // ---------------- 메인 루프 ----------------
+  process(inputs, outputs) {
+    const input = inputs[0] && inputs[0][0];
+    const output = outputs[0] && outputs[0][0];
+    if (!output) return true;
+    const N = output.length;
+    const P = this.p, fs = this.fs, M = this.MASK;
+    const nStart = this.n;
+
+    // 1) 입력 기록 + 다운샘플 + 게이트 판단
+    const gThr = dbToLin(P.gateDb);
+    const gClose = gThr * 0.5;
+    const aEnvA = 1 - Math.exp(-1 / (0.001 * fs)), aEnvR = 1 - Math.exp(-1 / (0.1 * fs));
+    const aGo = 1 - Math.exp(-1 / (0.002 * fs)), aGc = 1 - Math.exp(-1 / (0.09 * fs));
+    const holdN = Math.round(0.18 * fs);
+    for (let i = 0; i < N; i++) {
+      const raw = input ? input[i] : 0;
+      const x = this.hpIn.process(raw);
+      const j = this.n & M;
+      this.inBuf[j] = x;
+      const ax = Math.abs(x);
+      this.gEnv += (ax > this.gEnv ? aEnvA : aEnvR) * (ax - this.gEnv);
+      if (this.gEnv > gThr) { this.gOpen = true; this.gHold = holdN; }
+      else if (this.gEnv < gClose) { if (this.gHold > 0) this.gHold--; else this.gOpen = false; }
+      const target = !P.gateOn || this.gOpen ? 1 : 0.0;
+      this.gGain += (target > this.gGain ? aGo : aGc) * (target - this.gGain);
+      this.gateBuf[j] = this.gGain;
+      const y = this.lp2.process(this.lp1.process(x));
+      if (++this.decPhase >= this.R) { this.decPhase = 0; this.dBuf[this.dCount & this.dMASK] = y; this.dCount++; }
+      this.n++;
+      this.inSq += raw * raw; if (ax > this.inPeak) this.inPeak = ax;
+    }
+
+    // 2) 피치 프레임
+    while (this.dCount >= this.span + this.frameK * this.hopD) {
+      this.computeRawFrame(this.frameK);
+      if (this.frameK >= 1) this.finalizeFrame(this.frameK - 1);
+      this.frameK++;
+    }
+
+    // 3) PSOLA 합성
+    this.synthesize();
+
+    // 4) 출력
+    const rMid = nStart + (N >> 1) - this.D;
+    this.pitchAt(rMid);
+    this.vSmooth += 0.08 * ((this._pv ? 1 : 0) - this.vSmooth);
+    const breath = P.breath;
+    const aBa = 1 - Math.exp(-1 / (0.002 * fs)), aBr = 1 - Math.exp(-1 / (0.02 * fs));
+    const aDa = 1 - Math.exp(-1 / (0.0008 * fs)), aDr = 1 - Math.exp(-1 / (0.06 * fs));
+    const deAmt = P.deEss;
+    const deThr = dbToLin(-14 - 22 * deAmt);
+    const mix = P.mix;
+    const bypTarget = P.bypass ? 1 : 0;
+    const aByp = 1 - Math.exp(-1 / (0.015 * fs));
+    const aLv = 1 - Math.exp(-1 / (0.3 * fs)), aLg = 1 - Math.exp(-1 / (0.2 * fs));
+    const eFloor = Math.pow(dbToLin(P.gateDb), 2);
+
+    for (let i = 0; i < N; i++) {
+      const r = (nStart + i - this.D) & M;
+      const ws = this.wBuf[r];
+      let wet = ws > 1e-6 ? this.outBuf[r] / (ws > 0.2 ? ws : 0.2) : 0;
+      this.outBuf[r] = 0; this.wBuf[r] = 0;
+      const dry = this.inBuf[r];
+
+      // 음량 자동 맞춤: 변환 후에도 원래 목소리 크기를 유지
+      if (dry * dry > eFloor) {
+        this.eIn += aLv * (dry * dry - this.eIn);
+        this.eWet += aLv * (wet * wet - this.eWet);
+        let gt = Math.sqrt(this.eIn / (this.eWet + 1e-12));
+        if (gt < 0.7) gt = 0.7; else if (gt > 3) gt = 3;
+        this.lvl += aLg * (gt - this.lvl);
+      }
+      wet *= this.lvl;
+
+      // 숨소리: 목소리 크기를 따라가는 고역 노이즈
+      if (breath > 0) {
+        const aw = Math.abs(wet);
+        this.breathEnv += (aw > this.breathEnv ? aBa : aBr) * (aw - this.breathEnv);
+        this.noiseSeed = (this.noiseSeed * 1664525 + 1013904223) >>> 0;
+        const nz = this.noiseSeed / 2147483648 - 1;
+        const hn = this.lpNoise.process(this.hpNoise.process(nz));
+        wet += breath * 1.1 * this.breathEnv * hn * (0.35 + 0.65 * this.vSmooth);
+      }
+      // 디에서
+      if (deAmt > 0) {
+        const hs = this.deHP.process(wet);
+        const ah = Math.abs(hs);
+        this.deEnv += (ah > this.deEnv ? aDa : aDr) * (ah - this.deEnv);
+        if (this.deEnv > deThr) {
+          const g = Math.pow(deThr / this.deEnv, 0.75);
+          wet -= hs * (1 - g);
+        }
+      }
+      let y = wet * mix + dry * (1 - mix);
+      y *= this.gateBuf[(nStart + i - this.D + this.gateLook) & M];
+
+      // 바이패스 크로스페이드 (원음은 지연 없이)
+      this.bypassMix += aByp * (bypTarget - this.bypassMix);
+      if (this.bypassMix > 1e-4) {
+        const rawNow = input ? input[i] : 0;
+        y = y * (1 - this.bypassMix) + rawNow * this.bypassMix;
+      }
+      if (!(y === y)) y = 0;           // NaN 방지
+      if (y > 1.5) y = 1.5; else if (y < -1.5) y = -1.5;
+      output[i] = y;
+      this.outSq += y * y; const ay = Math.abs(y); if (ay > this.outPeak) this.outPeak = ay;
+    }
+    for (let c = 1; c < outputs[0].length; c++) outputs[0][c].set(output);
+    this.sqN += N;
+
+    // 5) 상태 보고 (~40ms 마다)
+    if (++this.statCounter >= Math.round(0.04 * fs / N)) {
+      this.port.postMessage({
+        type: 'stats',
+        inDb: linToDb(Math.sqrt(this.inSq / this.sqN)),
+        outDb: linToDb(Math.sqrt(this.outSq / this.sqN)),
+        inPeak: this.inPeak, outPeak: this.outPeak,
+        voiced: this.prevFinalV,
+        f0In: this.prevFinalV ? this.lastInF0 : 0,
+        f0Out: this.prevFinalV ? this.lastOutF0 : 0,
+        meanHz: Math.exp(this.meanLog),
+        gate: this.gGain,
+      });
+      this.statCounter = 0; this.inSq = 0; this.outSq = 0; this.sqN = 0; this.inPeak = 0; this.outPeak = 0;
+    }
+    return true;
+  }
+}
+
+registerProcessor('voice-processor', VoiceProcessor);
+
+</script>
+<script>
+(() => {
+// 목소리 프리셋
+// targetHz : 변환 후 평균 음높이 (자동으로 사용자 목소리에 맞춰 이동량 계산)
+// formant  : 성도 길이 비율 (1.15~1.2 성인 여성, 1.3 이상 아이 목소리)
+// intonation: 억양 폭 (1 = 원래 억양, 클수록 발랄)
+// breath   : 숨소리, vibDepth/vibRate: 비브라토(센트/Hz)
+// warmth/mud/presence/air: EQ(dB), deEss: 치찰음 억제, reverb: 공간감
+const PRESETS = [
+  { id: 'natural', emoji: '🌸', name: '자연스러운 여성', desc: '가장 사람 같은 기본 여성 톤',
+    v: { targetHz: 215, formant: 1.16, intonation: 1.15, breath: 0.08, vibDepth: 0, vibRate: 5.5, warmth: -1, mud: -2, presence: 2, air: 2, deEss: 0.4, reverb: 0 } },
+  { id: 'cute', emoji: '🎀', name: '귀여운 소녀', desc: '밝고 동글동글한 귀여운 목소리',
+    v: { targetHz: 275, formant: 1.22, intonation: 1.35, breath: 0.1, vibDepth: 0, vibRate: 5.5, warmth: -2, mud: -3, presence: 3, air: 3, deEss: 0.45, reverb: 0 } },
+  { id: 'loli', emoji: '🍭', name: '로리 보이스', desc: '작고 앳된 꼬마 소녀 톤',
+    v: { targetHz: 335, formant: 1.32, intonation: 1.4, breath: 0.07, vibDepth: 0, vibRate: 5.5, warmth: -3, mud: -3, presence: 2, air: 4, deEss: 0.5, reverb: 0 } },
+  { id: 'pretty', emoji: '💎', name: '청순 예쁜 목소리', desc: '맑고 부드러운 여신 톤, 살짝 숨결',
+    v: { targetHz: 238, formant: 1.18, intonation: 1.2, breath: 0.18, vibDepth: 0, vibRate: 5.5, warmth: -1, mud: -2, presence: 2, air: 5, deEss: 0.45, reverb: 0.06 } },
+  { id: 'anime', emoji: '✨', name: '애니 히로인', desc: '억양이 풍부한 애니메이션 주인공',
+    v: { targetHz: 305, formant: 1.26, intonation: 1.6, breath: 0.08, vibDepth: 0, vibRate: 5.5, warmth: -2, mud: -3, presence: 4, air: 3, deEss: 0.5, reverb: 0.04 } },
+  { id: 'idol', emoji: '🎤', name: '아이돌', desc: '반짝이는 고음 + 살짝 울림',
+    v: { targetHz: 258, formant: 1.2, intonation: 1.35, breath: 0.12, vibDepth: 8, vibRate: 5.5, warmth: -1, mud: -2, presence: 3, air: 5, deEss: 0.45, reverb: 0.14 } },
+  { id: 'neko', emoji: '🐱', name: '냥냥 고양이', desc: '하이톤 + 살랑이는 비브라토, 냥~',
+    v: { targetHz: 345, formant: 1.3, intonation: 1.65, breath: 0.08, vibDepth: 18, vibRate: 6.5, warmth: -3, mud: -3, presence: 3, air: 4, deEss: 0.5, reverb: 0.03 } },
+  { id: 'fairy', emoji: '🧚', name: '요정', desc: '아주 작고 반짝이는 요정 목소리',
+    v: { targetHz: 400, formant: 1.4, intonation: 1.3, breath: 0.2, vibDepth: 10, vibRate: 5, warmth: -4, mud: -3, presence: 2, air: 7, deEss: 0.5, reverb: 0.28 } },
+  { id: 'bubbly', emoji: '🍬', name: '상큼 발랄', desc: '통통 튀는 캔디 같은 텐션',
+    v: { targetHz: 292, formant: 1.24, intonation: 1.75, breath: 0.06, vibDepth: 0, vibRate: 5.5, warmth: -2, mud: -3, presence: 4, air: 3, deEss: 0.45, reverb: 0 } },
+  { id: 'asmr', emoji: '🌙', name: 'ASMR 속삭임', desc: '숨결 가득한 나긋나긋한 톤',
+    v: { targetHz: 225, formant: 1.17, intonation: 0.9, breath: 0.5, vibDepth: 0, vibRate: 5.5, warmth: 0, mud: -2, presence: 1, air: 6, deEss: 0.55, reverb: 0.08 } },
+  { id: 'nuna', emoji: '☕', name: '다정한 누나', desc: '차분하고 포근한 성숙한 톤',
+    v: { targetHz: 200, formant: 1.13, intonation: 1.1, breath: 0.12, vibDepth: 0, vibRate: 5.5, warmth: 1, mud: -2, presence: 1, air: 3, deEss: 0.4, reverb: 0.05 } },
+  { id: 'bunny', emoji: '🐰', name: '아기 토끼', desc: '말랑말랑 아기 같은 귀여움',
+    v: { targetHz: 370, formant: 1.36, intonation: 1.45, breath: 0.08, vibDepth: 0, vibRate: 5.5, warmth: -3, mud: -3, presence: 2, air: 4, deEss: 0.5, reverb: 0 } },
+  { id: 'princess', emoji: '👑', name: '공주님', desc: '우아하고 사랑스러운 공주 톤',
+    v: { targetHz: 285, formant: 1.24, intonation: 1.3, breath: 0.14, vibDepth: 6, vibRate: 5.2, warmth: -2, mud: -2, presence: 3, air: 5, deEss: 0.45, reverb: 0.12 } },
+];
+
+
+const $ = (s) => document.querySelector(s);
+const LS_KEY = 'cutievoice.v1';
+const dbToLin = (db) => Math.pow(10, db / 20);
+const PRESET_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='];
+
+const DEF = {
+  mode: 'target', targetHz: 275, semitones: 8, formant: 1.22, intonation: 1.35, breath: 0.1,
+  vibDepth: 0, vibRate: 5.5, warmth: -2, mud: -3, presence: 3, air: 3, deEss: 0.45, reverb: 0,
+  dryMix: 0, inGain: 0, gateDb: -52, comp: 0.5, outGain: 0,
+};
+const VOICE_PRESET_KEYS = ['targetHz', 'formant', 'intonation', 'breath', 'vibDepth', 'vibRate', 'warmth', 'mud', 'presence', 'air', 'deEss', 'reverb'];
+
+const pct = (v) => Math.round(v * 100) + '%';
+const sign = (v, u) => (v > 0 ? '+' : '') + (Math.round(v * 10) / 10) + u;
+const CONTROLS = {
+  voiceCtl: [
+    { k: 'targetHz', label: '목표 음높이', min: 150, max: 480, step: 1, fmt: (v) => v + ' Hz', only: 'target', desc: '변환 후 평균 높이 · 성인 여성 200~260, 소녀 270~330, 아이 350+' },
+    { k: 'semitones', label: '음높이 이동', min: -12, max: 24, step: 0.5, fmt: (v) => sign(v, ' 반음'), only: 'semitone', desc: '남성 → 여성은 보통 +7 ~ +12 반음' },
+    { k: 'formant', label: '포먼트 (성도 길이)', min: 0.8, max: 1.6, step: 0.01, fmt: (v) => sign((v - 1) * 100, '%'), desc: '음색의 핵심 · 높을수록 작고 어린 몸집 소리 (여성 +15~20%)' },
+    { k: 'intonation', label: '억양 폭', min: 0.5, max: 2.2, step: 0.05, fmt: (v) => '×' + v.toFixed(2), desc: '말할 때 높낮이 변화 · 여성스러운 말투일수록 크게' },
+    { k: 'breath', label: '숨소리', min: 0, max: 1, step: 0.01, fmt: pct, desc: '부드러운 숨결 · 청순/ASMR 느낌' },
+    { k: 'vibDepth', label: '비브라토 깊이', min: 0, max: 60, step: 1, fmt: (v) => v + ' cent' },
+    { k: 'vibRate', label: '비브라토 속도', min: 3, max: 9, step: 0.1, fmt: (v) => v.toFixed(1) + ' Hz' },
+  ],
+  toneCtl: [
+    { k: 'warmth', label: '따뜻함 (저음 180Hz)', min: -8, max: 8, step: 0.5, fmt: (v) => sign(v, ' dB'), desc: '줄이면 남자 목소리 특유의 묵직함이 사라져요' },
+    { k: 'mud', label: '탁함 제거 (350Hz)', min: -10, max: 3, step: 0.5, fmt: (v) => sign(v, ' dB') },
+    { k: 'presence', label: '선명도 (3.5kHz)', min: -6, max: 10, step: 0.5, fmt: (v) => sign(v, ' dB') },
+    { k: 'air', label: '공기감 (10kHz)', min: -6, max: 10, step: 0.5, fmt: (v) => sign(v, ' dB'), desc: '반짝이고 맑은 느낌' },
+    { k: 'deEss', label: '치찰음 억제 (ㅅ,ㅆ,ㅊ)', min: 0, max: 1, step: 0.01, fmt: pct },
+    { k: 'reverb', label: '공간감 (리버브)', min: 0, max: 1, step: 0.01, fmt: pct },
+    { k: 'dryMix', label: '원래 목소리 섞기', min: 0, max: 0.5, step: 0.01, fmt: pct, desc: '보통 0% · 살짝 섞으면 더 자연스러울 때도 있어요' },
+  ],
+  ioCtl: [
+    { k: 'inGain', label: '마이크 입력 게인', min: -12, max: 24, step: 0.5, fmt: (v) => sign(v, ' dB'), desc: '입력 미터가 말할 때 노란색 근처면 적당해요' },
+    { k: 'gateDb', label: '노이즈 게이트 임계값', min: -80, max: -25, step: 1, fmt: (v) => v + ' dB', desc: '키보드/잡음이 새면 올리고, 말이 끊기면 내리세요' },
+    { k: 'comp', label: '컴프레서 강도', min: 0, max: 1, step: 0.01, fmt: pct, desc: '작은 소리는 키우고 큰 소리는 눌러 방송용으로 고르게' },
+    { k: 'outGain', label: '출력 볼륨', min: -24, max: 12, step: 0.5, fmt: (v) => sign(v, ' dB') },
+  ],
+};
+const ALL_CTL = Object.values(CONTROLS).flat();
+
+// ---------------- 상태 ----------------
+let S = {
+  params: { ...DEF }, preset: 'cute', inId: '', outId: '', monId: '', monitor: false,
+  ns: true, agc: false, gate: true, compOn: true, freeze: false, calibHz: 0, custom: [],
+};
+try {
+  const saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+  if (saved) S = { ...S, ...saved, params: { ...DEF, ...(saved.params || {}) } };
+} catch (e) { /* 무시 */ }
+let saveT = 0;
+const save = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) { /* 무시 */ } }, 250); };
+
+// ---------------- 오디오 ----------------
+let ctx = null, node = null, src = null, stream = null;
+let inGainNode, eq = {}, revSend, conv, comp, makeup, limiter, outGainNode, muteGain, anIn, anOut, monDest, monEl;
+let workletLatency = 0, bypass = false, muted = false, running = false;
+let calib = null, recorder = null;
+const hist = [];
+let last = { f0In: 0, f0Out: 0, meanHz: 0 };
+
+function biq(type, f, q = 0.7) {
+  const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; b.gain.value = 0; return b;
+}
+
+function makeImpulse(sec = 1.8, decay = 0.38) {
+  const sr = ctx.sampleRate, len = Math.round(sec * sr), buf = ctx.createBuffer(2, len, sr);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    let lp = 0;
+    const pre = Math.round(0.012 * sr);
+    for (let i = pre; i < len; i++) {
+      const t = (i - pre) / sr;
+      const a = 0.9 - 0.7 * Math.min(1, t / 0.8);       // 시간이 갈수록 어두워지는 꼬리
+      lp += a * ((Math.random() * 2 - 1) - lp);
+      d[i] = lp * Math.exp(-t / decay);
+    }
+    // 초기 반사
+    [0.007, 0.013, 0.021, 0.029].forEach((t, j) => { const i = Math.round((t + 0.003 * c) * sr); d[i] += 0.5 / (j + 1); });
+  }
+  return buf;
+}
+
+async function start() {
+  $('#startErr').textContent = '';
+  if (!navigator.mediaDevices || !window.AudioWorkletNode) {
+    $('#startErr').textContent = '이 브라우저는 지원되지 않아요. Chrome 또는 Edge 최신 버전을 사용해주세요.';
+    return;
+  }
+  try {
+    ctx = new AudioContext({ latencyHint: 'interactive' });
+    {
+      // 파일로 열었을 때(file://)는 blob 주소가 막히므로 data 주소로, 안 되면 blob 으로
+      const code = document.getElementById('worklet-src').textContent;
+      try { await ctx.audioWorklet.addModule('data:text/javascript;charset=utf-8,' + encodeURIComponent(code)); }
+      catch (e1) { await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([code], { type: 'application/javascript' }))); }
+    }
+    node = new AudioWorkletNode(ctx, 'voice-processor', {
+      numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1],
+      channelCount: 1, channelCountMode: 'explicit', channelInterpretation: 'speakers',
+    });
+    node.port.onmessage = onWorkletMsg;
+
+    inGainNode = ctx.createGain();
+    anIn = ctx.createAnalyser(); anIn.fftSize = 4096; anIn.smoothingTimeConstant = 0.7;
+    inGainNode.connect(node); inGainNode.connect(anIn);
+
+    eq.warmth = biq('lowshelf', 180);
+    eq.mud = biq('peaking', 350, 1.0);
+    eq.presence = biq('peaking', 3500, 0.9);
+    eq.air = biq('highshelf', 10000);
+    node.connect(eq.warmth); eq.warmth.connect(eq.mud); eq.mud.connect(eq.presence); eq.presence.connect(eq.air);
+
+    comp = ctx.createDynamicsCompressor();
+    makeup = ctx.createGain();
+    limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -1.5; limiter.knee.value = 0; limiter.ratio.value = 20;
+    limiter.attack.value = 0.001; limiter.release.value = 0.08;
+    revSend = ctx.createGain(); revSend.gain.value = 0;
+    conv = ctx.createConvolver(); conv.buffer = makeImpulse();
+    eq.air.connect(comp);
+    eq.air.connect(revSend); revSend.connect(conv); conv.connect(comp);
+    comp.connect(makeup); makeup.connect(limiter);
+    outGainNode = ctx.createGain(); muteGain = ctx.createGain();
+    limiter.connect(outGainNode); outGainNode.connect(muteGain);
+    anOut = ctx.createAnalyser(); anOut.fftSize = 4096; anOut.smoothingTimeConstant = 0.7;
+    muteGain.connect(anOut);
+    muteGain.connect(ctx.destination);
+    monDest = ctx.createMediaStreamDestination();
+    muteGain.connect(monDest);
+    monEl = new Audio(); monEl.srcObject = monDest.stream; monEl.autoplay = false;
+
+    await openMic();
+    await refreshDevices();
+    await applyOutput();
+    await applyMonitor();
+    applyAll();
+    if (S.calibHz) node.port.postMessage({ type: 'setMean', hz: S.calibHz });
+
+    ctx.onstatechange = updStatus;
+    navigator.mediaDevices.addEventListener('devicechange', refreshDevices);
+    running = true;
+    $('#startOverlay').classList.add('hide');
+    ['#bypassBtn', '#muteBtn', '#calibBtn', '#recBtn'].forEach((s) => ($(s).disabled = false));
+    updStatus(); updLatency();
+    requestAnimationFrame(draw);
+    toast('🎀 변신 완료! 헤드폰으로 들어보세요');
+  } catch (e) {
+    console.error(e);
+    let msg = e && e.message ? e.message : String(e);
+    if (e && e.name === 'NotAllowedError') msg = '마이크 권한이 막혀 있어요. ① 주소창 왼쪽 아이콘(자물쇠/설정)을 눌러 마이크를 "허용"으로 바꾸고 새로고침하세요. ② 그래도 안 되면 Windows 설정 → 개인 정보 및 보안 → 마이크 에서 "마이크 액세스"와 "데스크톱 앱이 마이크에 액세스하도록 허용"을 켜주세요.';
+    if (e && e.name === 'NotReadableError') msg = '다른 프로그램이 마이크를 독점하고 있어요. 디스코드/녹음 프로그램의 "독점 모드"를 끄거나 잠시 종료한 뒤 다시 시도해주세요.';
+    if (e && e.name === 'NotFoundError') msg = '마이크를 찾을 수 없어요. 마이크가 연결되어 있는지 확인해주세요.';
+    $('#startErr').textContent = '시작 실패: ' + msg;
+    try { ctx && ctx.close(); } catch (e2) { /* 무시 */ }
+    ctx = null;
+  }
+}
+
+async function openMic() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  if (src) { try { src.disconnect(); } catch (e) { /* 무시 */ } }
+  const c = {
+    echoCancellation: false, noiseSuppression: S.ns, autoGainControl: S.agc,
+    channelCount: { ideal: 1 }, sampleRate: { ideal: ctx.sampleRate }, latency: { ideal: 0 },
+  };
+  if (S.inId && S.inId !== 'default') c.deviceId = { exact: S.inId };
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: c });
+  } catch (e) {
+    if (c.deviceId && (e.name === 'OverconstrainedError' || e.name === 'NotFoundError')) {
+      delete c.deviceId; S.inId = '';
+      stream = await navigator.mediaDevices.getUserMedia({ audio: c });
+      toast('선택했던 마이크가 없어 기본 마이크로 연결했어요');
+    } else throw e;
+  }
+  const tr = stream.getAudioTracks()[0];
+  tr.addEventListener('ended', () => { toast('⚠️ 마이크 연결이 끊겼어요. 다시 연결 중…'); setTimeout(() => openMic().catch(() => {}), 800); });
+  src = ctx.createMediaStreamSource(stream);
+  src.connect(inGainNode);
+}
+
+async function refreshDevices() {
+  const list = await navigator.mediaDevices.enumerateDevices();
+  const ins = list.filter((d) => d.kind === 'audioinput');
+  const outs = list.filter((d) => d.kind === 'audiooutput');
+  const fill = (sel, arr, cur) => {
+    sel.innerHTML = '';
+    const def = document.createElement('option'); def.value = ''; def.textContent = '시스템 기본 장치'; sel.appendChild(def);
+    arr.filter((d) => d.deviceId !== 'default' && d.deviceId !== 'communications').forEach((d, i) => {
+      const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || `장치 ${i + 1}`; sel.appendChild(o);
+    });
+    sel.value = [...sel.options].some((o) => o.value === cur) ? cur : '';
+  };
+  fill($('#inSel'), ins, S.inId);
+  fill($('#outSel'), outs, S.outId);
+  fill($('#monSel'), outs, S.monId);
+  const vc = outs.find((d) => /cable input|vb-audio|voicemeeter|blackhole|loopback|virtual/i.test(d.label) && d.deviceId !== 'default' && d.deviceId !== 'communications');
+  const badge = $('#vcBadge');
+  badge.hidden = false;
+  if (vc && S.outId === vc.deviceId) {
+    badge.className = 'badge';
+    badge.innerHTML = `<span>✅ 가상 마이크로 출력 중<br><small>OBS/디스코드 입력을 <b>${vc.label.replace(/input/i, 'Output')}</b>로 선택하세요</small></span>`;
+  } else if (vc) {
+    badge.className = 'badge';
+    badge.innerHTML = `<span>💡 가상 마이크 발견: ${vc.label}</span><button class="small" id="useVc">여기로 출력</button>`;
+    $('#useVc').onclick = async () => { S.outId = vc.deviceId; $('#outSel').value = vc.deviceId; await applyOutput(); refreshDevices(); save(); };
+  } else {
+    badge.className = 'badge warn';
+    badge.innerHTML = '<span>⚠️ 가상 마이크 장치가 없어요. 방송/디스코드에 쓰려면 VB-CABLE을 설치하세요 (아래 안내 참고)</span>';
+  }
+  $('#monWrap').style.display = S.monitor ? '' : 'none';
+}
+
+async function applyOutput() {
+  if (!ctx) return;
+  if (typeof ctx.setSinkId === 'function') {
+    try { await ctx.setSinkId(S.outId || ''); }
+    catch (e) { toast('출력 장치 변경 실패: ' + e.message); }
+  } else if (S.outId) {
+    toast('이 브라우저는 출력 장치 선택을 지원하지 않아요 (Chrome/Edge 110 이상 필요)');
+  }
+  updLatency();
+}
+
+async function applyMonitor() {
+  if (!monEl) return;
+  if (S.monitor) {
+    if (S.monId === S.outId) toast('⚠️ 모니터와 출력이 같은 장치라 소리가 두 번 들릴 수 있어요');
+    try { if (monEl.setSinkId) await monEl.setSinkId(S.monId || ''); } catch (e) { toast('모니터 장치 변경 실패: ' + e.message); }
+    try { await monEl.play(); } catch (e) { /* 무시 */ }
+  } else {
+    monEl.pause();
+  }
+}
+
+function sendVoice() {
+  if (!node) return;
+  const P = S.params;
+  node.port.postMessage({
+    type: 'params',
+    params: {
+      mode: P.mode, targetHz: P.targetHz, semitones: P.semitones, formant: P.formant, intonation: P.intonation,
+      breath: P.breath, vibDepth: P.vibDepth, vibRate: P.vibRate, deEss: P.deEss, mix: 1 - P.dryMix,
+      gateOn: S.gate, gateDb: P.gateDb, bypass, freezeMean: S.freeze,
+    },
+  });
+}
+
+function setComp() {
+  if (!comp) return;
+  const a = S.compOn ? S.params.comp : 0;
+  const t = ctx.currentTime;
+  comp.threshold.setTargetAtTime(-6 - 26 * a, t, 0.05);
+  comp.ratio.setTargetAtTime(1 + 5 * a, t, 0.05);
+  comp.knee.value = 10; comp.attack.value = 0.004; comp.release.value = 0.16;
+  makeup.gain.setTargetAtTime(dbToLin(8 * a), t, 0.05);
+}
+
+function applyParam(k) {
+  if (!ctx) return;
+  const v = S.params[k], t = ctx.currentTime;
+  if (eq[k]) eq[k].gain.setTargetAtTime(v, t, 0.03);
+  else if (k === 'reverb') revSend.gain.setTargetAtTime(v * 0.9, t, 0.05);
+  else if (k === 'inGain') inGainNode.gain.setTargetAtTime(dbToLin(v), t, 0.03);
+  else if (k === 'outGain') outGainNode.gain.setTargetAtTime(dbToLin(v), t, 0.03);
+  else if (k === 'comp') setComp();
+  else sendVoice();
+}
+function applyAll() { ['warmth', 'mud', 'presence', 'air', 'reverb', 'inGain', 'outGain'].forEach(applyParam); setComp(); sendVoice(); }
+
+function updLatency() {
+  if (!ctx) return;
+  const ms = workletLatency + (ctx.baseLatency || 0) * 1000 + (ctx.outputLatency || 0) * 1000 + 10;
+  $('#latencyPill').textContent = `지연 ≈ ${Math.round(ms)} ms · ${(ctx.sampleRate / 1000).toFixed(1)}kHz`;
+}
+
+function updStatus() {
+  const p = $('#statusPill');
+  if (!ctx || ctx.state !== 'running') { p.className = 'pill idle'; p.textContent = ctx ? '일시정지됨 (클릭하여 재개)' : '대기 중'; }
+  else if (muted) { p.className = 'pill byp'; p.textContent = '🔇 출력 음소거'; }
+  else if (bypass) { p.className = 'pill byp'; p.textContent = '원래 목소리'; }
+  else { p.className = 'pill live'; p.textContent = '● 변조 중'; }
+  const b = $('#bypassBtn'); b.textContent = bypass ? '변조 OFF' : '변조 ON'; b.className = 'tog ' + (bypass ? 'off' : 'on');
+  const m = $('#muteBtn'); m.textContent = muted ? '🔇 음소거' : '🔊 출력'; m.className = 'tog ' + (muted ? 'off' : '');
+}
+
+function onWorkletMsg(e) {
+  const d = e.data;
+  if (d.type === 'ready') { workletLatency = d.latencyMs; updLatency(); return; }
+  if (d.type !== 'stats') return;
+  last = d;
+  hist.push([d.f0In, d.f0Out]); if (hist.length > 320) hist.shift();
+  $('#hzIn').textContent = d.f0In ? Math.round(d.f0In) : '–';
+  $('#hzOut').textContent = d.f0Out && !bypass ? Math.round(d.f0Out) : '–';
+  $('#hzMean').textContent = Math.round(d.meanHz);
+  const w = (db) => Math.max(0, Math.min(100, ((db + 60) / 60) * 100));
+  $('#mIn').style.width = w(20 * Math.log10(d.inPeak + 1e-9)) + '%';
+  $('#mOut').style.width = w(20 * Math.log10(d.outPeak + 1e-9)) + '%';
+  $('#mInDb').textContent = d.inDb > -90 ? d.inDb.toFixed(0) + ' dB' : '-∞';
+  $('#mOutDb').textContent = d.outDb > -90 ? d.outDb.toFixed(0) + ' dB' : '-∞';
+  $('#gateDot').className = 'gate-dot' + (d.gate > 0.5 ? ' open' : '');
+  if (calib && d.f0In > 0) calib.push(d.f0In);
+}
+
+// ---------------- 시각화 ----------------
+function fitCanvas(cv) {
+  const r = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (cv.width !== Math.round(w * r) || cv.height !== Math.round(h * r)) { cv.width = Math.round(w * r); cv.height = Math.round(h * r); }
+  const g = cv.getContext('2d'); g.setTransform(r, 0, 0, r, 0, 0); return [g, w, h];
+}
+let fIn, fOut;
+function draw() {
+  if (!running) return;
+  requestAnimationFrame(draw);
+  if (document.hidden) return;
+  // 피치 그래프
+  {
+    const [g, w, h] = fitCanvas($('#pitchCanvas'));
+    g.clearRect(0, 0, w, h);
+    const lo = Math.log(60), hi = Math.log(700);
+    const y = (f) => h - ((Math.log(f) - lo) / (hi - lo)) * h;
+    g.font = '10px sans-serif'; g.fillStyle = '#6f6189'; g.strokeStyle = '#2a2138'; g.lineWidth = 1;
+    [100, 200, 300, 500].forEach((f) => { g.beginPath(); g.moveTo(0, y(f)); g.lineTo(w, y(f)); g.stroke(); g.fillText(f + 'Hz', 4, y(f) - 3); });
+    g.fillStyle = 'rgba(255,126,182,.07)'; g.fillRect(0, y(330), w, y(190) - y(330));
+    const dx = w / 320;
+    [[0, '#b69cff', 1.5], [1, '#ff7eb6', 2.5]].forEach(([idx, col, lw]) => {
+      g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); let pen = false;
+      hist.forEach((p, i) => {
+        const f = p[idx]; const xx = w - (hist.length - i) * dx;
+        if (f > 0) { if (!pen) { g.moveTo(xx, y(f)); pen = true; } else g.lineTo(xx, y(f)); } else pen = false;
+      });
+      g.stroke();
+    });
+    g.fillStyle = '#b69cff'; g.fillText('● 내 목소리', w - 150, 12); g.fillStyle = '#ff7eb6'; g.fillText('● 변환', w - 70, 12);
+  }
+  // 스펙트럼
+  {
+    const [g, w, h] = fitCanvas($('#specCanvas'));
+    g.clearRect(0, 0, w, h);
+    if (!fIn) { fIn = new Float32Array(anIn.frequencyBinCount); fOut = new Float32Array(anOut.frequencyBinCount); }
+    anIn.getFloatFrequencyData(fIn); anOut.getFloatFrequencyData(fOut);
+    const sr = ctx.sampleRate, N = anIn.fftSize, lo = Math.log(60), hi = Math.log(16000);
+    const yy = (db) => h - Math.max(0, Math.min(1, (db + 100) / 80)) * h;
+    const path = (arr) => {
+      g.beginPath();
+      for (let x = 0; x <= w; x += 2) {
+        const f = Math.exp(lo + (x / w) * (hi - lo)); const b = Math.min(arr.length - 1, Math.round((f * N) / sr));
+        const v = yy(arr[b]); x === 0 ? g.moveTo(x, v) : g.lineTo(x, v);
+      }
+    };
+    path(fOut); g.lineTo(w, h); g.lineTo(0, h); g.closePath();
+    const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,126,182,.55)'); gr.addColorStop(1, 'rgba(182,156,255,.05)');
+    g.fillStyle = gr; g.fill();
+    path(fIn); g.strokeStyle = 'rgba(182,156,255,.7)'; g.lineWidth = 1; g.stroke();
+    g.fillStyle = '#6f6189'; g.font = '10px sans-serif';
+    [100, 500, 1000, 3000, 8000].forEach((f) => { const x = ((Math.log(f) - lo) / (hi - lo)) * w; g.fillText(f >= 1000 ? f / 1000 + 'k' : f, x + 2, h - 4); });
+  }
+}
+
+// ---------------- UI 구성 ----------------
+function renderControls() {
+  for (const [id, defs] of Object.entries(CONTROLS)) {
+    const box = $('#' + id); box.innerHTML = '';
+    defs.forEach((d) => {
+      const w = document.createElement('div'); w.className = 'sl'; w.dataset.k = d.k; if (d.only) w.dataset.only = d.only;
+      w.innerHTML = `<div class="t"><span>${d.label}</span><span class="v"></span></div><input type="range" min="${d.min}" max="${d.max}" step="${d.step}">${d.desc ? `<div class="d">${d.desc}</div>` : ''}`;
+      const inp = w.querySelector('input');
+      inp.addEventListener('input', () => { S.params[d.k] = parseFloat(inp.value); updSlider(d.k); applyParam(d.k); save(); });
+      inp.addEventListener('dblclick', () => { S.params[d.k] = DEF[d.k]; updSlider(d.k); applyParam(d.k); save(); });
+      box.appendChild(w);
+    });
+  }
+  ALL_CTL.forEach((d) => updSlider(d.k));
+  updMode();
+}
+function updSlider(k) {
+  const d = ALL_CTL.find((c) => c.k === k); if (!d) return;
+  const w = document.querySelector(`.sl[data-k="${k}"]`); if (!w) return;
+  const inp = w.querySelector('input'), v = S.params[k];
+  inp.value = v; w.querySelector('.v').textContent = d.fmt(v);
+  inp.style.setProperty('--fill', ((v - d.min) / (d.max - d.min)) * 100 + '%');
+}
+function updMode() {
+  document.querySelectorAll('#modeSeg button').forEach((b) => b.classList.toggle('on', b.dataset.mode === S.params.mode));
+  document.querySelectorAll('.sl[data-only]').forEach((w) => w.classList.toggle('hidden', w.dataset.only !== S.params.mode));
+}
+
+function presetCard(p, idx, custom) {
+  const b = document.createElement('div');
+  b.className = 'preset' + (S.preset === p.id ? ' on' : ''); b.tabIndex = 0; b.dataset.id = p.id;
+  b.innerHTML = `<span class="em">${p.emoji}</span><span class="nm"></span><span class="ds"></span>` +
+    (custom ? '<button class="del" title="삭제">✕</button>' : (PRESET_KEYS[idx] ? `<span class="key">${PRESET_KEYS[idx]}</span>` : ''));
+  b.querySelector('.nm').textContent = p.name; b.querySelector('.ds').textContent = p.desc;
+  b.addEventListener('click', (e) => {
+    if (e.target.classList.contains('del')) { S.custom = S.custom.filter((c) => c.id !== p.id); renderPresets(); save(); return; }
+    applyPreset(p);
+  });
+  b.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyPreset(p); });
+  return b;
+}
+function renderPresets() {
+  const g = $('#presetGrid'); g.innerHTML = '';
+  PRESETS.forEach((p, i) => g.appendChild(presetCard(p, i, false)));
+  const c = $('#customGrid'); c.innerHTML = '';
+  S.custom.forEach((p) => c.appendChild(presetCard(p, -1, true)));
+}
+function applyPreset(p) {
+  S.params = { ...S.params, ...p.v };
+  if (!p.v.mode) S.params.mode = 'target';
+  S.preset = p.id;
+  ALL_CTL.forEach((d) => updSlider(d.k)); updMode(); applyAll();
+  document.querySelectorAll('.preset').forEach((el) => el.classList.toggle('on', el.dataset.id === p.id));
+  toast(`${p.emoji} ${p.name}`);
+  save();
+}
+
+let toastT = 0;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function bindUI() {
+  $('#startBtn').onclick = start;
+  document.querySelectorAll('#modeSeg button').forEach((b) => b.onclick = () => { S.params.mode = b.dataset.mode; updMode(); sendVoice(); save(); });
+  $('#bypassBtn').onclick = () => { bypass = !bypass; sendVoice(); updStatus(); };
+  $('#muteBtn').onclick = toggleMute;
+  $('#statusPill').onclick = () => { if (ctx && ctx.state !== 'running') ctx.resume(); };
+
+  $('#inSel').onchange = async (e) => { S.inId = e.target.value; save(); try { await openMic(); toast('🎙️ 마이크 변경됨'); } catch (er) { toast('마이크 변경 실패: ' + er.message); } };
+  $('#outSel').onchange = async (e) => { S.outId = e.target.value; save(); await applyOutput(); refreshDevices(); toast('📡 출력 장치 변경됨'); };
+  $('#monSel').onchange = async (e) => { S.monId = e.target.value; save(); await applyMonitor(); };
+  const chk = (id, key, fn) => { const el = $(id); el.checked = S[key]; el.onchange = async () => { S[key] = el.checked; save(); if (fn) await fn(); }; };
+  chk('#monChk', 'monitor', async () => { $('#monWrap').style.display = S.monitor ? '' : 'none'; await applyMonitor(); });
+  chk('#nsChk', 'ns', async () => { if (ctx) await openMic(); });
+  chk('#agcChk', 'agc', async () => { if (ctx) await openMic(); });
+  chk('#gateChk', 'gate', async () => sendVoice());
+  chk('#compChk', 'compOn', async () => setComp());
+  chk('#freezeChk', 'freeze', async () => sendVoice());
+  $('#monWrap').style.display = S.monitor ? '' : 'none';
+
+  $('#calibBtn').onclick = () => {
+    if (calib) return;
+    calib = [];
+    const btn = $('#calibBtn'); btn.disabled = true;
+    $('#calibMsg').textContent = '🗣️ 평소 말투로 아무 말이나 5초간 계속 말해주세요…';
+    let left = 5; btn.textContent = `🎯 측정 중… ${left}`;
+    const iv = setInterval(() => { left--; btn.textContent = `🎯 측정 중… ${left}`; if (left <= 0) clearInterval(iv); }, 1000);
+    setTimeout(() => {
+      const arr = calib.sort((a, b) => a - b); calib = null;
+      btn.disabled = false; btn.textContent = '🎯 내 목소리 맞춤 (5초)';
+      if (arr.length < 25) { $('#calibMsg').textContent = '목소리가 충분히 감지되지 않았어요. 마이크 게인을 올리고 다시 시도해주세요.'; return; }
+      const med = arr[Math.floor(arr.length / 2)];
+      S.calibHz = Math.round(med); save();
+      node.port.postMessage({ type: 'setMean', hz: med });
+      $('#calibMsg').textContent = `✅ 평균 음높이 ${S.calibHz} Hz 감지! 이제 목표 음높이에 정확히 맞춰 변환돼요.`;
+    }, 5000);
+  };
+
+  $('#recBtn').onclick = () => {
+    if (recorder) return;
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg'].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+    if (!mime) { toast('이 브라우저는 녹음을 지원하지 않아요'); return; }
+    const chunks = [];
+    recorder = new MediaRecorder(monDest.stream, { mimeType: mime, audioBitsPerSecond: 192000 });
+    recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    recorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: mime }); const url = URL.createObjectURL(blob);
+      const a = $('#recDl'); a.href = url; a.hidden = false;
+      const au = new Audio(url);
+      try { if (au.setSinkId && S.monitor) await au.setSinkId(S.monId || ''); } catch (e) { /* 무시 */ }
+      au.play().catch(() => {});
+      $('#recBtn').textContent = '⏺ 5초 녹음 테스트'; $('#recBtn').className = 'small'; recorder = null;
+      toast('▶ 녹음한 목소리를 재생합니다');
+    };
+    recorder.start();
+    $('#recBtn').textContent = '⏺ 녹음 중… 말해보세요'; $('#recBtn').className = 'small rec';
+    setTimeout(() => recorder && recorder.stop(), 5000);
+  };
+
+  $('#saveCustom').onclick = () => {
+    const name = $('#customName').value.trim() || `내 목소리 ${S.custom.length + 1}`;
+    const v = { mode: S.params.mode, semitones: S.params.semitones };
+    VOICE_PRESET_KEYS.forEach((k) => (v[k] = S.params[k]));
+    const p = { id: 'c' + Date.now(), emoji: '⭐', name, desc: S.params.mode === 'target' ? `${S.params.targetHz}Hz · 포먼트 ${Math.round((S.params.formant - 1) * 100)}%` : `${S.params.semitones}반음 · 포먼트 ${Math.round((S.params.formant - 1) * 100)}%`, v };
+    S.custom.push(p); S.preset = p.id; $('#customName').value = ''; renderPresets(); save(); toast('⭐ 저장했어요: ' + name);
+  };
+  $('#exportBtn').onclick = () => {
+    const blob = new Blob([JSON.stringify(S.custom, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cutievoice-presets.json'; a.click();
+  };
+  $('#importFile').onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const arr = JSON.parse(await f.text());
+      if (!Array.isArray(arr)) throw new Error('형식 오류');
+      arr.filter((p) => p && p.v && p.name).forEach((p) => S.custom.push({ ...p, id: 'c' + Date.now() + Math.random().toString(36).slice(2, 6), emoji: p.emoji || '⭐', desc: p.desc || '' }));
+      renderPresets(); save(); toast('가져오기 완료');
+    } catch (er) { toast('가져오기 실패: ' + er.message); }
+    e.target.value = '';
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const i = PRESET_KEYS.indexOf(e.key);
+    if (i >= 0 && PRESETS[i]) { applyPreset(PRESETS[i]); return; }
+    if (!running) return;
+    if (e.key === 'b' || e.key === 'B' || e.key === 'ㅠ') { bypass = !bypass; sendVoice(); updStatus(); toast(bypass ? '원래 목소리' : '변조 ON'); }
+    if (e.key === 'm' || e.key === 'M' || e.key === 'ㅡ') toggleMute();
+  });
+  document.addEventListener('pointerdown', () => { if (ctx && ctx.state === 'suspended') ctx.resume(); });
+}
+function toggleMute() {
+  if (!muteGain) return;
+  muted = !muted; muteGain.gain.setTargetAtTime(muted ? 0 : 1, ctx.currentTime, 0.01); updStatus();
+}
+
+renderControls();
+renderPresets();
+bindUI();
+
+})();
+</script>
+</body>
+</html>
